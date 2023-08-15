@@ -252,8 +252,6 @@ const people = [
     city: 'Samarqand',
   },
 ];
-let newPeopleArr = [];
-const cityPopulation = {};
 
 const yearArg = process.argv[2];
 
@@ -265,34 +263,51 @@ if (!yearArg) {
 const year = parseInt(yearArg);
 
 // filtering array by the period
-if (year !== NaN) {
-  newPeopleArr = people.filter(
-    (human) => human.birthYear <= year && human.deathYear > year
-  );
-}
+const newPeopleArr = (function filterByYear() {
+  if (!isNaN(year)) {
+    return people.filter(
+      (human) => human.birthYear <= year && human.deathYear > year
+    );
+  }
+})();
 
-newPeopleArr.forEach((human) => {
-  if (!cityPopulation[human.city]) {
-    cityPopulation[human.city] = 1;
+showResult(newPeopleArr);
+
+function showResult(arr) {
+  const { maxPopulation, mostPopulatedCity } = calculatePopulation(arr);
+  if (mostPopulatedCity) {
+    console.log(
+      `В ${year} году наибольшее население (${maxPopulation} чел.) было в городе ${mostPopulatedCity}.`
+    );
   } else {
-    cityPopulation[human.city]++;
-  }
-});
-
-let maxPopulation = 0;
-let mostPopulatedCity = '';
-
-for (const city in cityPopulation) {
-  if (cityPopulation[city] > maxPopulation) {
-    maxPopulation = cityPopulation[city];
-    mostPopulatedCity = city;
+    console.log(`В ${year} году нет данных о городах.`);
   }
 }
 
-if (mostPopulatedCity) {
-  console.log(
-    `В ${year} году наибольшее население (${maxPopulation} чел.) было в городе ${mostPopulatedCity}.`
-  );
-} else {
-  console.log(`В ${year} году нет данных о городах.`);
+function calculatePopulation(arr) {
+  const cityPopulation = {};
+
+  arr.forEach((human) => {
+    if (!cityPopulation[human.city]) {
+      cityPopulation[human.city] = 1;
+    } else {
+      cityPopulation[human.city]++;
+    }
+  });
+
+  return compareCites(cityPopulation);
+}
+
+function compareCites(cityPopulation) {
+  let maxPopulation = 0;
+  let mostPopulatedCity = '';
+
+  for (const city in cityPopulation) {
+    if (cityPopulation[city] > maxPopulation) {
+      maxPopulation = cityPopulation[city];
+      mostPopulatedCity = city;
+    }
+  }
+
+  return { maxPopulation, mostPopulatedCity };
 }
